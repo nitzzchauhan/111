@@ -1,0 +1,121 @@
+### A. Explaining the Problem Statement
+
+  • File & Lines to show:
+      • Open README.md:9-20 ➔ Highlight Lines 9–20 ("📌 Project Overview & Key Objectives").
+  • What to say:
+  │ "The objective of this assignment is to build a production-grade, reproducible MLOps pipeline on Google Cloud Platform for the Iris dataset. We set up Vertex AI Workbench and GCS, decoupled the
+  │ training and inference pipelines, ensured multi-run tracking with timestamped artifacts, and evaluated performance across multiple data versions."
+
+  ──────
+  ### B. Explaining Your Approach to Reach the Objective
+
+  • File & Lines to show:
+      • Open README.md:24-45 ➔ Highlight Lines 24–45 ("Repository Structure").
+      • Then open run_pipeline.py:49-87 ➔ Highlight Lines 49–87 (Sequential execution of Tasks 2, 3, 4, 5, and 6).
+  • What to say:
+  │ "Instead of a monolithic notebook, I adopted a modular architecture under src/. Training and inference are fully decoupled: train.py pushes the trained model to Cloud Storage, and inference.py
+  │ pulls both the model and evaluation dataset dynamically from GCS. Everything is orchestrated end-to-end via run_pipeline.py."
+
+  ──────
+  ### C. Configuration of Cloud Compute Setup
+
+  • File & Lines to show:
+      • Open config.py:4-16 ➔ Highlight Lines 4–16 (PROJECT_ID, LOCATION, BUCKET_NAME).
+      • Show browser tab or screenshots:
+          • image copy.png (Vertex AI Workbench instance instance-20261011-192557, Debian 12, Python 3.12, 4 vCPUs, 16 GB RAM).
+          • image copy 3.png (GCS Bucket week_1_artifacts in us-east1).
+
+  • What to say:
+  │ "I provisioned a Vertex AI Workbench instance named instance-20261011-192557 in us-central1-a with an e2-standard-4 machine type running Debian 12 and Python 3.12. For artifact and dataset
+  │ storage, I created a Google Cloud Storage bucket named gs://week_1_artifacts located in us-east1."
+
+  ──────
+  ### D. Explaining Input Files / Data
+
+  • File & Lines to show:
+      • Open iris.csv:1-10 ➔ Highlight Lines 1–10 (Features and species target).
+      • Open store_data.py:53-66 ➔ Highlight Lines 53–66 (Reading raw data and 70/30 stratified splitting).
+  • What to say:
+  │ "Our primary input is the raw Iris dataset with 150 rows across 3 balanced species classes. In store_data.py, we perform a 70/30 stratified split resulting in 105 training samples and 45
+  │ evaluation samples, and also ingest versions v1 with 101 rows and v2 with 49 rows for drift analysis."
+
+  ──────
+  ### E. Sequence of Actions Performed
+
+  • File & Lines to show:
+      • Show JupyterLab Terminal screenshot: image copy 4.png (jupyter@instance-20261011-192557, cloning repo and cd into repo).
+      • Open README.md:61-107 ➔ Highlight Lines 61–107 ("How to Run" via JupyterLab or CLI) and Lines 141–144 (Collaborator IITMBSMLOps invited).
+  • What to say:
+  │ "The sequence was: first, provision compute and storage on GCP; second, launch JupyterLab and open the terminal; third, clone our private Git repository on the week_1 branch and invite
+  │ IITMBSMLOps as collaborator; fourth, install requirements; and finally, trigger the pipeline."
+
+  ──────
+  ### F. Exhaustive Explanation of Scripts / Code and Its Objective
+
+  • Files & Lines to show (walk through each script):
+      1. store_data.py:31-83 ➔ Highlight Lines 31–83:
+      │ "In store_data.py, prepare_and_store_data reads the CSV, cleans headers, splits into 70/30 stratified sets, and uploads raw, train, and eval CSVs directly to gs://week_1_artifacts/data/."
+
+      2. train.py:77-142 ➔ Highlight Lines 77–142:
+      │ "In train.py, run_training downloads train.csv from GCS, trains a DecisionTreeClassifier with max_depth=3, dumps model.joblib to in-memory bytes, and uploads the model, metrics JSON, and
+      │ training log to a timestamped GCS folder."
+
+      3. inference.py:108-158 ➔ Highlight Lines 108–158:
+      │ "In inference.py, run_inference independently loads model.joblib and eval.csv from GCS, computes predictions, and uploads predictions.csv and eval_metrics.json back to GCS."
+
+      4. compare_versions.py:77-115 ➔ Highlight Lines 77–115:
+      │ "In compare_versions.py, compare_data_versions trains and evaluates the model across both version 1 and version 2, generating a comprehensive comparison report in GCS."
+
+
+  ──────
+  ### G. Errors Encountered & How You Overcame Them
+
+  • Files & Lines to show:
+      1. BOM Header Character: Open store_data.py:54-55 ➔ Highlight Lines 54–55 (df.columns.str.replace("\ufeff", "").str.strip()).
+      │ "The raw dataset contained a hidden UTF-8 byte-order mark in \ufeffsepal_length. I resolved this by stripping BOM and whitespace from column names."
+
+      2. Decoupling Leakage: Open inference.py:36-49 ➔ Highlight Lines 36–49 (load_model_from_gcs).
+      │ "To avoid in-memory coupling between train and test, I ensured the inference script loads the serialized model.joblib directly from GCS storage bytes."
+
+      3. Timestamp Folder Collision: Open run_pipeline.py:68-70 ➔ Highlight Lines 68–70 (time.sleep(3)).
+      │ "To prevent consecutive runs in Task 5 from overwriting the same folder, I introduced a 3-second pause to guarantee distinct ISO timestamped folders in GCS."
+
+      4. Git Binary Cleanliness: Show .gitignore:1-10 (ignoring *.joblib, *.pkl, *.mp4).
+      │ "As per grading rules, I ensured model binaries and video screencasts are ignored by Git and kept strictly in GCS."
+
+
+  ──────
+  ### H. Working Demonstration of Pipeline in GCP
+
+  • File & Lines to show:
+      • Open pipeline_run_log.txt:17-34 ➔ Highlight Lines 17–34 (Run 1, Run 2, and Task 6 results).
+      • Or open pipeline_notebook.ipynb ➔ Scroll through the executed cells showing successful outputs and !gsutil ls -R.
+  • What to say:
+  │ "Here is the executed log showing both runs: Run 1 completed at timestamp 2026-10-11T16-05-35 with 98.10% training accuracy and 93.33% evaluation accuracy. Run 2 completed at 2026-10-11T16-05-41
+  │ with identical metrics, proving reproducibility across independent timestamped runs."
+
+  ──────
+  ### I. Explaining Output Files / Data
+
+  • File & Lines to show:
+      • Open README.md:110-137 ➔ Highlight Lines 110–137 (GCS artifact directory tree).
+      • Open data_version_comparison_report.txt:1-12 ➔ Highlight Lines 1–12 (v1 vs v2 comparison table).
+  • What to say:
+  │ "In GCS under gs://week_1_artifacts/, we have data/ containing our split datasets, and artifacts/ containing separate timestamped folders for each run with model.joblib, predictions.csv,
+  │ train_metrics.json, and logs. We also have data_version_comparison_report.txt comparing versions 1 and 2."
+
+  ──────
+  ### J. Learnings from this Assignment
+
+  • File & Lines to show:
+      • Open data_version_comparison_report.txt:6-10 ➔ Highlight Lines 6–10 (Comparison metrics).
+  • What to say:
+  │ "My key takeaways: First, decoupling train and inference stages guarantees clean deployment boundaries. Second, using GCS as the single source of truth provides cloud persistence. And third,
+  from
+  │ Task 6, we saw how smaller datasets like Version 2 cause severe overfitting—reaching 100% training accuracy but dropping evaluation accuracy from 96.77% down to 86.67%."
+
+
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+>
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+? for shortcuts                                                                                                                                                                   Gemini 3.8 Flash · high
